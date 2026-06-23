@@ -17,7 +17,14 @@ const { PORT } = process.env;
 
 // --- MIDDLEWARES DE SEGURIDAD ---
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "script-src": ["'self'", "'unsafe-eval'"],
+    }
+  }
+}));
 app.use(cors());
 const limiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutos
@@ -33,6 +40,8 @@ app.use(morgan('dev'));
 // --- MIDDLEWARE DE PARSEO ---
 
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, 'api/public/docs')));
 
 app.use('/api', limiter, apiRouter)
 

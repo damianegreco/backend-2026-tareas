@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node ./app.js",
     "dev": "nodemon ./app.js",
-    "insertarAlumnos": "node ./bin/insertarAlumnos.js"
+    "insertarAlumnos": "node ./bin/insertarAlumnos.js",
+    "documentar": "apidoc -i api/ -o api/public/docs/"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
     "mysql2": "^3.22.5"
   },
   "devDependencies": {
+    "apidoc": "^1.2.0",
     "nodemon": "^3.1.14"
   }
 }
