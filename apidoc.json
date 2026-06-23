@@ -3,5 +3,5 @@
   "version": "1.0.0",
   "description": "API REST para la gestión de tareas por usuario",
   "title": "Backend Tareas — Documentación",
-  "url": "http://localhost:5555/api"
+  "url": "https://api-tareas.ctpoba.edu.ar/api"
 }
