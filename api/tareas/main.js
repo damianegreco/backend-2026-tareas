@@ -47,7 +47,7 @@ const db = require('../../db/main');
  * @apiError (401) {String} error <code>"Sin autorización"</code> — el documento no corresponde a ningún usuario.
  * @apiError (500) {String} error Descripción del error interno del servidor.
  */
-router.get("/", function(req, res, next) {
+router.get("/", function (req, res, next) {
   const { busqueda = null, categoria = null, orden = null, limit = 99999, offset = 0 } = req.query;
   const usuario_id = req.user.id;
 
@@ -72,14 +72,76 @@ router.get("/", function(req, res, next) {
   params.push(Number(limit), Number(offset));
 
   db.query(sql, params)
-  .then(([resultados, fields]) => {
-    console.log(resultados);
-    res.status(200).json({ status: "ok", tareas: resultados });
-  })
-  .catch((error) => {
-    console.error(error);
-    res.status(500).json({ status: "error", error });
-  });
+    .then(([resultados, fields]) => {
+      console.log(resultados);
+      res.status(200).json({ status: "ok", tareas: resultados });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ status: "error", error });
+    });
+});
+
+
+/**
+ * @api {get} /tareas/:tarea_id Listar detalles tarea
+ * @apiName GetTarea
+ * @apiGroup Tareas
+ * @apiDescription Devuelve detalles de tarea del usuario autenticado. Solo obtiene una indicada por su ID.
+ *
+ * @apiHeader {String} Authorization Número de documento del usuario (usado como token de autenticación).
+ *
+ * @apiParam {Number} tarea_id ID de la tarea deseada.
+ *
+ * @apiSuccess {String}   status       <code>"ok"</code>
+ * @apiSuccess {Object} tarea        Lista de tareas del usuario.
+ * @apiSuccess {Number}   tarea.id          ID de la tarea.
+ * @apiSuccess {String}   tarea.nombre      Nombre de la tarea.
+ * @apiSuccess {String}   tarea.descripcion Descripción detallada.
+ * @apiSuccess {Number}   tarea.prioridad   Nivel de prioridad.
+ * @apiSuccess {String}   tarea.categoria   Categoría de la tarea.
+ * @apiSuccess {String}   tarea.estado      Estado actual.
+ * @apiSuccess {Number}   tarea.usuario_id  ID del usuario propietario.
+ * @apiSuccess {Boolean}  tarea.eliminada   Siempre <code>false</code> en este endpoint.
+ *
+ * @apiSuccessExample {json} Respuesta exitosa:
+ *   HTTP/1.1 200 OK
+ *   {
+ *     "status": "ok",
+ *     "tarea":{
+ *       "id": 1,
+ *       "nombre": "Estudiar para el parcial",
+ *       "descripcion": "Repasar capítulos 3 y 4",
+ *       "prioridad": 1,
+ *       "categoria": "escolar",
+ *       "estado": "pendiente",
+ *       "usuario_id": 42,
+ *       "eliminada": false
+ *     }
+ *   }
+ *
+ * @apiError (401) {String} error <code>"Sin autorización"</code> — el documento no corresponde a ningún usuario.
+ * @apiError (500) {String} error Descripción del error interno del servidor.
+ */
+router.get("/:tarea_id", function (req, res, next) {
+  const { tarea_id } = req.params;
+  const usuario_id = req.user.id;
+
+  let sql = "SELECT * FROM tareas WHERE id = ? AND usuario_id = ? ";
+  let params = [tarea_id, usuario_id];
+
+  db.query(sql, params)
+    .then(([resultados, fields]) => {
+      if (resultados.length === 1) {
+        res.status(200).json({ status: "ok", tarea: resultados[0] });
+      } else {
+        res.status(400).json({ status: "error", error: "No existe tarea_id para este usuario_id" });
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ status: "error", error });
+    });
 });
 
 /**
@@ -116,21 +178,21 @@ router.get("/", function(req, res, next) {
  * @apiError (401) {String} error <code>"Sin autorización"</code>
  * @apiError (500) {String} error Descripción del error interno del servidor.
  */
-router.post("/", function(req, res, next) {
+router.post("/", function (req, res, next) {
   const { nombre, descripcion, prioridad, categoria, estado } = req.body;
   const usuario_id = req.user.id;
 
   const sql = `INSERT INTO tareas (nombre, descripcion, prioridad, categoria, estado, usuario_id) VALUES (?, ?, ?, ?, ?, ?)`;
 
   db.query(sql, [nombre, descripcion, prioridad, categoria, estado, usuario_id])
-  .then(([resultados, fields]) => {
-    console.log(resultados);
-    res.status(201).json({ status: "ok", tarea: resultados });
-  })
-  .catch((error) => {
-    console.error(error);
-    res.status(500).json({ status: "error", error });
-  });
+    .then(([resultados, fields]) => {
+      console.log(resultados);
+      res.status(201).json({ status: "ok", tarea: resultados });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ status: "error", error });
+    });
 });
 
 /**
@@ -165,7 +227,7 @@ router.post("/", function(req, res, next) {
  * @apiError (401) {String} error <code>"Sin autorización"</code>
  * @apiError (500) {String} error Descripción del error interno del servidor.
  */
-router.put("/estado/:tarea_id", function(req, res, next) {
+router.put("/estado/:tarea_id", function (req, res, next) {
   const { tarea_id } = req.params;
   const usuario_id = req.user.id;
   const { estado } = req.body;
@@ -173,14 +235,14 @@ router.put("/estado/:tarea_id", function(req, res, next) {
   const sql = `UPDATE tareas SET estado = ? WHERE id = ? AND usuario_id = ?`;
 
   db.query(sql, [estado, tarea_id, usuario_id])
-  .then(([resultados, fields]) => {
-    console.log(resultados);
-    res.status(202).json({ status: "ok", tarea: resultados });
-  })
-  .catch((error) => {
-    console.error(error);
-    res.status(500).json({ status: "error", error });
-  });
+    .then(([resultados, fields]) => {
+      console.log(resultados);
+      res.status(202).json({ status: "ok", tarea: resultados });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ status: "error", error });
+    });
 });
 
 /**
@@ -204,21 +266,21 @@ router.put("/estado/:tarea_id", function(req, res, next) {
  * @apiError (401) {String} error <code>"Sin autorización"</code>
  * @apiError (500) {String} error Descripción del error interno del servidor.
  */
-router.delete("/:tarea_id", function(req, res, next) {
+router.delete("/:tarea_id", function (req, res, next) {
   const { tarea_id } = req.params;
   const usuario_id = req.user.id;
 
   const sql = `UPDATE tareas SET eliminada = true WHERE id = ? AND usuario_id = ?`;
 
   db.query(sql, [tarea_id, usuario_id])
-  .then(([resultados, fields]) => {
-    console.log(resultados);
-    res.status(202).json({ status: "ok" });
-  })
-  .catch((error) => {
-    console.error(error);
-    res.status(500).json({ status: "error", error });
-  });
+    .then(([resultados, fields]) => {
+      console.log(resultados);
+      res.status(202).json({ status: "ok" });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ status: "error", error });
+    });
 });
 
 module.exports = router;
